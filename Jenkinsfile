@@ -1,65 +1,55 @@
 pipeline {
 
-    agent any
+  agent any
 
+     stages {
 
+        stage('pytest') {
 
+           steps {
 
-    environment {
+              script {
 
-        version = "${env.BUILD_NUMBER}"
+                 sh 'conftest.py'
+                 sh'test_vector.py'
+             }
+           }
+        }
 
-        SONARQUBE_CRED = credentials('sonarqube_cred')
+        stage('SonarQube Analysis') {
 
-    }
-   
+           steps {
 
+              script {
 
+                 withSonarQubeEnv('Sonarqube') {
 
-    stages {
-    
-        stage=('pytest'){
-                
-                steps {
-                   
-                   script{
-                     
-                        sh '
+                    sh '''
 
-           stage('SonarQube Analysis') {
+                    /opt/sonar-scanner/bin/sonar-scanner \
 
-            steps {
+                    -Dsonar.projectKey=Calculate \
 
-                script {
+                    -Dsonar.host.url=http://172.19.0.3:9000 \
 
-                        withSonarQubeEnv('Sonarqube') {
+                    -Dsonar.login=$SONARQUBE_CRED_USR -Dsonar.password=$SONARQUBE_CRED_PSW
 
-                            sh '''
+                    '''
 
-                            /opt/sonar-scanner/bin/sonar-scanner \
+                }
 
-                            -Dsonar.projectKey=Calculate \
+              }
 
-                            -Dsonar.host.url=http://172.19.0.3:9000 \
+          }
 
-                            -Dsonar.login=$SONARQUBE_CRED_USR -Dsonar.password=$SONARQUBE_CRED_PSW
-
-                            '''
-
-                        }
-
-                    }
-
-                }
-
-            }
+        }
 
 
 
 
 
-            }
+     }
 
-        }
+  }
 
 }
